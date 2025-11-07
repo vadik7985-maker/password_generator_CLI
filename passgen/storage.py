@@ -1,30 +1,39 @@
+"""Модуль для хранения и загрузки хэшированных паролей.
+
+Использует SHA-256 для хэширования и работает с текстовыми файлами.
+"""
+
 import hashlib
 import os
 
 
 def hash_password(password: str) -> str:
-    """
-    Хэширует пароль с использованием SHA-256.
+    """Хэширует пароль с использованием SHA-256.
 
     Args:
-        password (str): Пароль для хэширования.
+        password (str): Исходный пароль.
 
     Returns:
-        str: Шестнадцатеричный SHA-256 хэш.
+        str: Шестнадцатеричная строка хэша SHA-256.
+
+    Raises:
+        None
     """
     return hashlib.sha256(password.encode('utf-8')).hexdigest()
 
 
 def save_password(password: str, filename: str) -> None:
-    """
-    Сохраняет хэш пароля в файл.
+    """Сохраняет хэш пароля в файл (добавляет в конец).
 
     Args:
         password (str): Пароль для сохранения.
-        filename (str): Имя файла для записи.
+        filename (str): Путь к файлу для записи.
+
+    Returns:
+        None
 
     Raises:
-        IOError: Если не удается записать в файл.
+        IOError: Если произошла ошибка при записи в файл.
     """
     hashed = hash_password(password)
     try:
@@ -34,18 +43,18 @@ def save_password(password: str, filename: str) -> None:
         print(f"Ошибка при записи в файл {filename}: {e}")
 
 
-def load_passwords(filename: str) -> list:
-    """
-    Загружает список хэшей паролей из файла.
+def load_passwords(filename: str) -> list[str]:
+    """Загружает список хэшей паролей из файла.
 
     Args:
-        filename (str): Имя файла для чтения.
+        filename (str): Путь к файлу с хэшами.
 
     Returns:
-        list[str]: Список хэшей паролей.
+        list[str]: Список хэшей паролей (строк).
 
     Raises:
-        IOError: Если не удается прочитать файл.
+        FileNotFoundError: Если файл не существует.
+        IOError: Если произошла ошибка при чтении файла.
     """
     if not os.path.exists(filename):
         raise FileNotFoundError(f"Файл {filename} не найден.")

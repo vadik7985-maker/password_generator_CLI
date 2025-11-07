@@ -1,8 +1,23 @@
+"""Точка входа CLI-утилиты passgen.
+
+Парсит аргументы командной строки и передаёт управление в модуль commands.
+"""
+
 import argparse
 from passgen.commands import handle_commands
 
 
-def main():
+def main() -> None:
+    """Запускает CLI-утилиту генератора паролей.
+
+    Создаёт парсер аргументов и передаёт их в handle_commands.
+
+    Returns:
+        None
+
+    Raises:
+        SystemExit: При ошибке парсинга аргументов.
+    """
     parser = argparse.ArgumentParser(
         description="Генератор паролей CLI - создавайте и храните безопасные пароли"
     )

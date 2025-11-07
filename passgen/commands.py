@@ -1,14 +1,31 @@
+"""Модуль обработки командной строки и логики CLI-утилиты.
+
+Этот модуль содержит основную функцию handle_commands, которая обрабатывает
+входящие аргументы из argparse и выполняет генерацию пароля или поиск
+хэшированного пароля в файле.
+"""
+
 from .generator import generate_password
 from .utils import validate_args
 from .storage import save_password, load_passwords, hash_password
 
 
-def handle_commands(args) -> None:
-    """
-    Основная логика обработки команд с параметрами из argparse.
+def handle_commands(args: any) -> None:
+    """Обрабатывает команды из аргументов командной строки.
+
+    Выполняет либо генерацию пароля с сохранением (если указано), либо поиск
+    хэшированного пароля в указанном файле.
 
     Args:
-        args (Namespace): Объект с аргументами командной строки.
+        args (argparse.Namespace): Объект с аргументами командной строки.
+
+    Returns:
+        None
+
+    Raises:
+        FileNotFoundError: Если файл для поиска не найден.
+        ValueError: При ошибке валидации параметров генерации.
+        IOError: При ошибке записи в файл.
     """
     # Обработка поиска пароля
     if args.find:
