@@ -1,66 +1,64 @@
-"""Модуль для хранения и загрузки хэшированных паролей.
+"""Модуль для безопасного шифрования паролей."""
 
-Использует SHA-256 для хэширования и работает с текстовыми файлами.
-"""
-
-import hashlib
+from cryptography.fernet import Fernet
+import base64
 import os
 
+# Генерируем или загружаем ключ шифрования
+KEY_FILE = "passgen_key.key"
 
-def hash_password(password: str) -> str:
-    """Хэширует пароль с использованием SHA-256.
 
+def get_encryption_key() -> bytes:
+    """Получает ключ шифрования из файла или генерирует новый."""
+    if os.path.exists(KEY_FILE):
+        with open(KEY_FILE, 'rb') as f:
+            return f.read()
+    else:
+        # Генерируем новый ключ
+        key = Fernet.generate_key()
+        with open(KEY_FILE, 'wb') as f:
+            f.write(key)
+        print(f"Создан новый ключ шифрования: {KEY_FILE}")
+        return key
+
+
+def encrypt_password(password: str) -> str:
+    """Шифрует пароль для хранения в БД.
+    
     Args:
-        password (str): Исходный пароль.
-
+        password (str): Пароль в открытом виде
+        
     Returns:
-        str: Шестнадцатеричная строка хэша SHA-256.
-
-    Raises:
-        None
+        str: Зашифрованный пароль в base64
     """
-    return hashlib.sha256(password.encode('utf-8')).hexdigest()
+    key = get_encryption_key()
+    fernet = Fernet(key)
+    
+    # Шифруем пароль и кодируем в base64 для хранения в текстовом поле БД
+    encrypted = fernet.encrypt(password.encode())
+    return base64.b64encode(encrypted).decode('utf-8')
 
 
-def save_password(password: str, filename: str) -> None:
-    """Сохраняет хэш пароля в файл (добавляет в конец).
-
+def decrypt_password(encrypted_password: str) -> str:
+    """Расшифровывает пароль из БД.
+    
     Args:
-        password (str): Пароль для сохранения.
-        filename (str): Путь к файлу для записи.
-
+        encrypted_password (str): Зашифрованный пароль в base64
+        
     Returns:
-        None
-
+        str: Пароль в открытом виде
+        
     Raises:
-        IOError: Если произошла ошибка при записи в файл.
+        ValueError: Если не удалось расшифровать
     """
-    hashed = hash_password(password)
     try:
-        with open(filename, 'a', encoding='utf-8') as f:
-            f.write(hashed + '\n')
-    except IOError as e:
-        print(f"Ошибка при записи в файл {filename}: {e}")
-
-
-def load_passwords(filename: str) -> list[str]:
-    """Загружает список хэшей паролей из файла.
-
-    Args:
-        filename (str): Путь к файлу с хэшами.
-
-    Returns:
-        list[str]: Список хэшей паролей (строк).
-
-    Raises:
-        FileNotFoundError: Если файл не существует.
-        IOError: Если произошла ошибка при чтении файла.
-    """
-    if not os.path.exists(filename):
-        raise FileNotFoundError(f"Файл {filename} не найден.")
-    try:
-        with open(filename, 'r', encoding='utf-8') as f:
-            return f.read().splitlines()
-    except IOError as e:
-        print(f"Ошибка при чтении файла {filename}: {e}")
-        return []
+        key = get_encryption_key()
+        fernet = Fernet(key)
+        
+        # Декодируем из base64 и расшифровываем
+        encrypted_bytes = base64.b64decode(encrypted_password)
+        decrypted = fernet.decrypt(encrypted_bytes)
+        
+        return decrypted.decode('utf-8')
+    except Exception as e:
+        raise ValueError(f"Ошибка расшифровки: {e}")
