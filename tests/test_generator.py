@@ -31,7 +31,7 @@ class TestPasswordGenerator(unittest.TestCase):
         при включенных соответствующих опциях.
         """
         password = generate_password(use_uppercase=True, use_digits=True, use_special=True, length=24)
-        self.assertTrue(any(c in string.ascii_uppercase for c in password)) 
+        self.assertTrue(any(c in string.ascii_uppercase for c in password))
         self.assertTrue(any(c in string.digits for c in password))
         self.assertTrue(any(c in string.punctuation for c in password))
     
@@ -43,6 +43,13 @@ class TestPasswordGenerator(unittest.TestCase):
         password = generate_password(use_uppercase=False, use_digits=False, use_special=False)
         self.assertTrue(all(c in string.ascii_lowercase for c in password))
         self.assertEqual(len(password), 12)
+    
+    def test_various_lengths(self):
+        """Тест различных длин пароля."""
+        for length in [1, 5, 10, 20, 50]:
+            with self.subTest(length=length):
+                password = generate_password(length=length)
+                self.assertEqual(len(password), length)
 
 
 if __name__ == '__main__':

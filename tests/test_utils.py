@@ -23,16 +23,18 @@ class TestUtils(unittest.TestCase):
         
         Проверяет, что функция выбрасывает ValueError при длине 0.
         """
-        with self.assertRaises(ValueError):
+        with self.assertRaises(ValueError) as context:
             validate_args(0, True, True, True)
+        self.assertIn("Длина пароля должна быть положительным числом", str(context.exception))
     
     def test_validate_args_negative_length(self):
         """Тест ошибки при отрицательной длине.
         
         Проверяет, что функция выбрасывает ValueError при отрицательной длине.
         """
-        with self.assertRaises(ValueError):
+        with self.assertRaises(ValueError) as context:
             validate_args(-5, True, True, True)
+        self.assertIn("Длина пароля должна быть положительным числом", str(context.exception))
     
     @patch('sys.stdout', new_callable=StringIO)
     def test_warning_when_no_char_types(self, mock_stdout):
@@ -64,6 +66,25 @@ class TestUtils(unittest.TestCase):
         """
         # Не должно вызывать исключений
         validate_args(1, True, True, True)
+    
+    def test_various_combinations(self):
+        """Тест различных комбинаций параметров."""
+        test_cases = [
+            (8, True, False, False),
+            (16, False, True, False),
+            (20, False, False, True),
+            (12, True, True, False),
+            (14, False, True, True),
+            (18, True, False, True),
+        ]
+        
+        for length, special, digits, uppercase in test_cases:
+            with self.subTest(length=length, special=special, digits=digits, uppercase=uppercase):
+                try:
+                    validate_args(length, special, digits, uppercase)
+                except Exception as e:
+                    self.fail(f"validate_args вызвала исключение {e} для параметров: "
+                             f"length={length}, special={special}, digits={digits}, uppercase={uppercase}")
 
 
 if __name__ == '__main__':
